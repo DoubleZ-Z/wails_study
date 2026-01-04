@@ -3,8 +3,10 @@ package project
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 	"wails_study/project/interceptor"
@@ -85,7 +87,10 @@ func NewTcpService(addr string) *TCPService {
 func (t *TCPService) Start() error {
 	listener, err := net.Listen("tcp", t.addr)
 	if err != nil {
-		return err
+		if strings.Contains(err.Error(), "address already in use") {
+			return fmt.Errorf("TCP服务启动失败: 端口 %s 已被占用，请检查是否有其他程序正在使用此端口", t.addr)
+		}
+		return fmt.Errorf("TCP服务启动失败: %v", err)
 	}
 	t.listener = listener
 	t.workPool = tcpServer.NewWorkPool(10)
@@ -96,7 +101,6 @@ func (t *TCPService) Start() error {
 			case <-t.stopChan:
 				return
 			default:
-
 			}
 
 			connection, err := t.listener.Accept()
@@ -106,7 +110,7 @@ func (t *TCPService) Start() error {
 				case <-t.stopChan:
 					return
 				default:
-					println("接受连接错误", err.Error())
+					fmt.Printf("接受连接错误: %v\n", err)
 					continue
 				}
 			}

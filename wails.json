@@ -2,7 +2,7 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "wails_study",
   "output filename": "wails_study",
-  "frontend:install": "npm install",
+  "frontend:install": "yarn",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",

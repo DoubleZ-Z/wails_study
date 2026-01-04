@@ -25,6 +25,17 @@ var messageHistoryMap *util.SafeMap[string, *MessageHistory]
 
 func init() {
 	messageHistoryMap = util.NewSafeMap[string, *MessageHistory]()
+	SetMessageHistory("origin", packetV2.ProtonPacket[any]{
+		Header: packetV2.ProtonPacketHeader{
+			Action: "origin",
+			Trace:  "0001",
+			Time:   "1234124123",
+		},
+		Ext: packetV2.ProtonPacketExt{
+			Station: "yanyizhi",
+		},
+		Reason: "event",
+	}, nil)
 }
 
 func SetMessageHistory(origin string, packet packetV2.ProtonPacket[any], error error) {
