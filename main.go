@@ -3,18 +3,30 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"wails_study/project"
+	"wails_study/project/logger"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"go.uber.org/zap"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
+
+	logger.Init(true)
+	defer func(SugaredLogger *zap.SugaredLogger) {
+		err := SugaredLogger.Sync()
+		if err != nil {
+			fmt.Println("日志缓存释放失败：" + err.Error())
+			panic(err)
+		}
+	}(logger.SugaredLogger)
+
 	app := NewApp()
 	manager := project.ServiceManager{}
 	httpService := project.NewHttpService(":8088")

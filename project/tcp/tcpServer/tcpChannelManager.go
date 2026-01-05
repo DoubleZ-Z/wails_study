@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"time"
+	"wails_study/project/logger"
 	"wails_study/project/tcp/broker"
 	"wails_study/project/tcp/dto"
 	"wails_study/project/tcp/history"
@@ -44,13 +45,13 @@ func HandleConnect(conn net.Conn) {
 	for {
 		err := conn.SetReadDeadline(time.Now().Add(10 * time.Minute))
 		if err != nil {
-			fmt.Println("设置连接读取超时失败:", err)
+			logger.Warn("设置连接读取超时失败:", err.Error())
 			break
 		}
 
 		n, err := conn.Read(readBuffer)
 		if err != nil {
-			fmt.Println("读取数据错误或连接已断开:", err)
+			logger.Warn("读取数据错误或连接已断开:", err.Error())
 			break
 		}
 
@@ -72,15 +73,15 @@ func HandleConnect(conn net.Conn) {
 
 			if startIndex != -1 && endIndex != -1 && startIndex < endIndex {
 				dataPacket := dataBuffer[startIndex+1 : endIndex]
-				fmt.Printf("receive packet from %d : %s\n", connect.Conn.RemoteAddr().Network(), string(dataPacket))
+				logger.Infof("receive packet from %s : %s", connect.Conn.RemoteAddr().String(), string(dataPacket))
 				defaultBroker := broker.DefaultBroker{}
 				var result string
-				packet, err := packetV2.Deserialize(dataPacket)
-				history.SetMessageHistory(string(dataPacket), packet, err)
-				if err != nil {
+				packet, deserializeErr := packetV2.Deserialize(dataPacket)
+				history.SetMessageHistory(string(dataPacket), packet, deserializeErr)
+				if deserializeErr == nil {
 					result = defaultBroker.HandlePacket(packet, connect)
 				} else {
-
+					logger.Warnf("packet deserialize error: %s", deserializeErr.Error())
 				}
 				processed = endIndex + 1
 				startIndex = -1
@@ -88,13 +89,14 @@ func HandleConnect(conn net.Conn) {
 				if util.IsStringEmpty(result) {
 					continue
 				}
-				fmt.Printf("try send response payload : %s \n", result)
+				logger.Infof("try send to %s response payload : %s", connect.Conn.RemoteAddr().String(), result)
 				packetBytes := []byte(result)
-				if _, err := conn.Write(supplement(packetBytes)); err != nil {
-					fmt.Printf("发送响应数据到客户端失败: %v\n", err)
+				if _, writeErr := conn.Write(supplement(packetBytes)); writeErr != nil {
+					logger.Errorf("发送响应数据到客户端失败: %s", writeErr.Error())
 					break
+				} else {
+					logger.Infof("send response to %s success", connect.Conn.RemoteAddr().String())
 				}
-				fmt.Printf("send response to %d success\n", connect.Conn.RemoteAddr())
 			} else {
 				// 没有找到完整的数据包，将已处理的数据部分移除
 				if processed > 0 {
@@ -106,7 +108,6 @@ func HandleConnect(conn net.Conn) {
 		}
 	}
 
-	// 连接断开时从连接管理器中移除
 	connectionAbstract.RemoveChannel(connect.Id)
 }
 

@@ -54,9 +54,6 @@ func CheckSign(packet ProtonPacket[any]) (bool, string) {
 func Deserialize(payloadV2 []byte) (ProtonPacket[any], error) {
 
 	var packet ProtonPacket[any]
-	// 首先尝试解析整个字符串为JSON到ProtonPacket结构
-	// 尝试解析为ProtonPacket结构
-	// 由于我们不知道具体的payload类型，使用any作为泛型参数
 	var tempPacket struct {
 		Type        string             `json:"type"`
 		Reason      string             `json:"reason"`
@@ -89,17 +86,14 @@ func Deserialize(payloadV2 []byte) (ProtonPacket[any], error) {
 	return packet, nil
 }
 
-// SetPayload 设置payload数据
 func (packet *ProtonPacket[T]) SetPayload(data any) {
 	packet.Payload = data
 }
 
-// GetPayload 获取payload数据
 func (packet *ProtonPacket[T]) GetPayload() any {
 	return packet.Payload
 }
 
-// toJsonObject 将packet中的payload转成传入的结构体类型并返回
 func (packet *ProtonPacket[T]) toJsonObject() (T, error) {
 	var result T
 	if packet.Payload == nil {

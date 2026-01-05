@@ -2,6 +2,7 @@ package broker
 
 import (
 	"wails_study/project/tcp/dto"
+	"wails_study/project/tcp/history"
 	"wails_study/project/tcp/manager"
 	"wails_study/project/tcp/packetV2"
 )
@@ -20,6 +21,9 @@ func (b *DefaultBroker) HandlePacket(packet packetV2.ProtonPacket[any], connect 
 	case packetV2.TYPE_REQUEST:
 		response := manager.OnRequest(packet, connect)
 		responseStr, _ = packetV2.Serialize(response)
+		history.UpdateMessageHistory(responseStr, response)
+	case packetV2.TYPE_RESPONSE:
+		//TODO 响应处理
 	}
 	return responseStr
 }

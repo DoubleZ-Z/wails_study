@@ -41,7 +41,6 @@ func (p *ByteBufferPool) GetBuffer() []byte {
 		atomic.AddInt64(&p.totalAllocated, -1)
 	}
 
-	// 否则，从池中取（会阻塞直到有 buffer 归还）
 	return <-p.freeBuffers
 }
 
@@ -57,7 +56,6 @@ func (p *ByteBufferPool) ReturnBuffer(buf []byte) {
 	case p.freeBuffers <- buf:
 
 	default:
-		// 池已满（理论上不会发生，因为 freeBuffers 容量 = maxPoolSize）
-		// 此时 buffer 会被 GC 回收
+		// 池已满
 	}
 }

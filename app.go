@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"wails_study/project/frontend"
 	"wails_study/project/tcp/history"
 )
 
@@ -20,6 +21,7 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	frontend.SetMainContext(ctx)
 }
 
 // Greet returns a greeting for the given name

@@ -3,7 +3,6 @@ package packetV2
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,7 +32,6 @@ func Sign(packet ProtonPacket[any], signKey string) string {
 	}
 	builder.WriteString(signKey)
 	signText := builder.String()
-	fmt.Println(signText)
 	hasher := md5.New()
 	hasher.Write([]byte(signText))
 	return strings.ToUpper(hex.EncodeToString(hasher.Sum(nil)))
